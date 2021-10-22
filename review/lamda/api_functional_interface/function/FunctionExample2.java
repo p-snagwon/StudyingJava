@@ -16,8 +16,8 @@ public class FunctionExample2 {
 
     public static double avg(ToIntFunction<Student> function) {
         int sum = 0;
-        for (Student student : list) {
-            sum += function.applyAsInt(student);
+        for (Student student : list) {            sum += function.applyAsInt(student);
+
         }
         double avg = (double) sum / list.size();
         return avg;
