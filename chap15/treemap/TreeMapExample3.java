@@ -1,0 +1,30 @@
+package chap15.treemap;
+
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeMap;
+
+public class TreeMapExample3 {
+
+    public static void main(String[] args) {
+
+        TreeMap<String, Integer> treeMap = new TreeMap<>();
+        treeMap.put("apple", new Integer(10));
+        treeMap.put("forever", new Integer(60));
+        treeMap.put("description", new Integer(40));
+        treeMap.put("ever", new Integer(50));
+        treeMap.put("zoo", new Integer(10));
+        treeMap.put("base", new Integer(20));
+        treeMap.put("guess", new Integer(70));
+        treeMap.put("cherry", new Integer(30));
+
+        System.out.println("[c ~ f 사이의 단어 검색]");
+        NavigableMap<String, Integer> rageMap = treeMap.subMap("c", true, "f", true);
+        Set<Map.Entry<String, Integer>> entries = rageMap.entrySet();
+        for (Map.Entry<String, Integer> entry : entries) {
+            System.out.println(entry.getKey() + " - " + entry.getValue());
+
+        }
+    }
+}
