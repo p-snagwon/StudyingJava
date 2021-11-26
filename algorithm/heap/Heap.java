@@ -1,110 +1,211 @@
 package heap;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
+import java.util.NoSuchElementException;
 
-public class Heap {
-    public ArrayList<Integer> heapArray = null;
+public class Heap<E>{
 
-    public Heap(Integer data) {
-        heapArray = new ArrayList<>();
+    private final Comparator<? super E> comparator;
+    private static final int DEFAULT_CAPACITY = 10;
 
-        heapArray.add(null);
-        heapArray.add(data);
+
+    private int size; // 요소 개수
+
+    private Object[] array;
+
+    //생성자 Type1
+    public Heap() {
+        this(null);
     }
 
-    public boolean insert(Integer data) {
+    public Heap(Comparator<? super E> comparator) {
+        this.array = new Object[DEFAULT_CAPACITY];
+        this.size = 0;
+        this.comparator = comparator;
+    }
 
-        Integer insert_idx, parent_idx;
+    public Heap(int capacity) {
+        this(capacity, null);
+    }
 
-        if (heapArray == null) {
-            heapArray = new ArrayList<>();
+    public Heap(int capacity, Comparator<? super E> comparator) {
+        this.array = new Object[capacity];
+        this.size = 0;
+        this.comparator = comparator;
+    }
 
-            heapArray.add(null);
-            heapArray.add(data);
+    private int getParent(int index) {
+        return index /2;
+    }
+
+    private int getLeftChild(int index) {
+        return index * 2;
+    }
+
+    private int getRightChild(int index) {
+        return index * 2 + 1;
+    }
+
+
+    private void resize(int newCapacity) {
+
+        Object[] newArray = new Object[newCapacity];
+
+        for (int i = 1; i <= size; i++) {
+            newArray[i] = array[i];
+        }
+
+        this.array = null;
+        this.array = newArray;
+    }
+
+    public void add(E value) {
+        if (size == array.length + 1) {
+            resize(array.length * 2);
+        }
+
+        siftUp(size + 1, value);
+        size++;
+    }
+
+    private void siftUp(int idx, E target) {
+        if (comparator != null) {
+            siftUpComparator(idx, target, comparator);
         } else {
-            heapArray.add(data);
+            siftUpComparable(idx, target);
+        }
+    }
 
-            insert_idx = this.heapArray.size()-1;
-            while (this.move_up(insert_idx)) {
+    private void siftUpComparator(int idx, E target, Comparator<? super E> comp) {
 
-                parent_idx = insert_idx / 2;
-                Collections.swap(this.heapArray, insert_idx, parent_idx);
-                insert_idx = parent_idx;
+        while (idx > 1) {
+            int parent = getParent(idx);
+            Object parentVal = array[parent];
+
+            //타겟 노드 값이 부모노드보다 크면 종료
+            if (comp.compare(target, (E) parentVal) >= 0) {
+                break;
             }
 
+            array[idx] = parentVal;
+            idx = parent;
+
         }
 
-
-        return true;
-
-
+        array[idx] = target;
     }
 
-    public Integer pop() {
-        if (this.heapArray == null) {
-            return null;
-        } else {
-            return this.heapArray.get(1);
-        }
-    }
+    private void siftUpComparable(int idx, E target) {
+        //타겟 노드가 비교할 수 있도록 한 변수를 만든다.
 
-    private boolean move_up(Integer insert_idx) {
+        Comparable<? super E> comp = (Comparable<? super E>) target;
 
-        if (insert_idx <= 1) {
-            return false;
-        }
+        while (idx > 1) {
+            int parent = getParent(idx);
+            Object parentVal = array[parent];
 
-        Integer parent_idx = insert_idx / 2;
-        if (this.heapArray.get(insert_idx) > this.heapArray.get(parent_idx)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean move_down(Integer popped_idx) {
-        Integer left_child_popped_idx, right_child_popped_idx;
-
-        left_child_popped_idx = popped_idx *2;
-        right_child_popped_idx = popped_idx * 2 + 1;
-
-        //Case1: 왼쪽자식노드가 없을떄(자식노드가 하나도 없을떄)
-        if (left_child_popped_idx >= heapArray.size()) {
-            return false;
-        } else if (right_child_popped_idx >= this.heapArray.size()) {
-            if (this.heapArray.get(popped_idx) < this.heapArray.get(left_child_popped_idx)) {
-                return true;
-            } else {
-                return false;
+            if (comp.compareTo((E) parentVal) >= 0) {
+                break;
             }
+
+            array[idx] = parentVal;
+            idx = parent;
+        }
+
+        array[idx] = comp;
+    }
+
+    public E remove() {
+        if (array[1] == null) {
+            throw new NoSuchElementException();
+        }
+
+        E result = (E) array[1];
+        E target = (E) array[size];
+        array[size] = null;
+
+        siftDown(1, target);
+
+        return result;
+    }
+
+    private void siftDown(int idx, E target) {
+        if (comparator != null) {
+            siftDownComparator(idx, target, comparator);
         } else {
-            //왼쪽 오른쪽 모두 다있는 경우
-            if (this.heapArray.get(left_child_popped_idx) > this.heapArray.get(right_child_popped_idx)) {
-                if (this.heapArray.get(popped_idx) < this.heapArray.get(left_child_popped_idx)) {
-                    return true;
-                } else {
-                    return false;
-                }
-                if (this.heapArray.get(popped_idx) < this.heapArray.get(right_child_popped_idx)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            siftDownComparator(idx, target);
         }
     }
 
-    public static void main(String[] args) {
+    private void siftDownComparator(int idx, E target, Comparator<? super E> comp) {
+        array[idx] = null;
+        size--;
 
-        Heap heap = new Heap(15);
+        int parent = idx;
+        int child; //교환될 자식을 가리키는 변수
 
-        heap.insert(10);
-        heap.insert(8);
-        heap.insert(5);
-        heap.insert(4);
-        heap.insert(20) ;
+        while ((child = getLeftChild(parent))<= size) {
 
-        System.out.println(heap.heapArray);
+            int right = getRightChild(parent);
+
+            Object childVal = array[child]; //왼쪽 값
+
+            if (right <= size && comp.compare((E) childVal, (E) array[right]) > 0) {
+                child = right;
+                childVal = array[child];
+            }
+
+            if (comp.compare(target, (E) childVal) <= 0) {
+                break;;
+            }
+
+            array[parent] = childVal;
+            parent = child;
+
+        }
+
+        array[parent] = target;
+
+
+        if (array.length > DEFAULT_CAPACITY && size < array.length / 4) {
+            resize(Math.max(DEFAULT_CAPACITY, array.length /2));
+        }
+
+
+    }
+
+    private void siftDownComparable(int idx, E target) {
+        Comparable<? super E> comp = (Comparable<? super E>) target;
+
+        array[idx] = null;
+        size--;
+
+        int parent = idx;
+        int child;
+
+        while ((child = getLeftChild(parent)) <= size) {
+            int right = getRightChild(parent);
+
+            Object childVal = array[child];
+
+            if(right <= size && ((Comparable<? super E>)childVal).compareTo((E)array[right]) > 0) {
+                child = right;
+                childVal = array[child];
+            }
+
+            if (comp.compareTo((E) childVal) <= 0) {
+                break;
+            }
+
+            array[parent] = childVal;
+            parent = child;
+        }
+        array[parent] = comp;
+
+
+        if(array.length > DEFAULT_CAPACITY && size < array.length / 4) {
+            resize(Math.max(DEFAULT_CAPACITY, array.length / 2));
+        }
+
     }
 }
